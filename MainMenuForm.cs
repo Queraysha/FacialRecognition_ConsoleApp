@@ -10,16 +10,11 @@ using System.Windows.Forms;
 
 namespace FacialRecognition
 {
-    public partial class AdminLoginForm: Form
+    public partial class MainMenuForm: Form
     {
-        public AdminLoginForm()
+        public MainMenuForm()
         {
             InitializeComponent();
-        }
-
-        private void btnSubmit_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
