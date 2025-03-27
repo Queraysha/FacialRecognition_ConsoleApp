@@ -27,7 +27,6 @@ namespace FacialRecognition
 
         private void btnMange_Click(object sender, EventArgs e)
         {
-            // Open the Main Menu Form form (Raza,2021)
             AcceptedUsersForm au = new AcceptedUsersForm();
             au.Show();
             this.Hide(); // Hide Admin Form
@@ -35,7 +34,9 @@ namespace FacialRecognition
 
         private void btnVisitor_Click(object sender, EventArgs e)
         {
-
+            VisitorForm vf = new VisitorForm();
+            vf.Show();
+            this.Hide(); // Hide Admin Form
         }
     }
 }
