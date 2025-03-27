@@ -38,43 +38,46 @@
             // 
             this.btnEmployee.Location = new System.Drawing.Point(338, 88);
             this.btnEmployee.Name = "btnEmployee";
-            this.btnEmployee.Size = new System.Drawing.Size(162, 23);
+            this.btnEmployee.Size = new System.Drawing.Size(162, 39);
             this.btnEmployee.TabIndex = 0;
             this.btnEmployee.Text = "Employee Acess";
             this.btnEmployee.UseVisualStyleBackColor = true;
+            this.btnEmployee.Click += new System.EventHandler(this.btnEmployee_Click);
             // 
             // btnVisitor
             // 
             this.btnVisitor.Location = new System.Drawing.Point(338, 165);
             this.btnVisitor.Name = "btnVisitor";
-            this.btnVisitor.Size = new System.Drawing.Size(162, 23);
+            this.btnVisitor.Size = new System.Drawing.Size(162, 38);
             this.btnVisitor.TabIndex = 1;
             this.btnVisitor.Text = "Visitor Acess";
             this.btnVisitor.UseVisualStyleBackColor = true;
+            this.btnVisitor.Click += new System.EventHandler(this.btnVisitor_Click);
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(338, 308);
+            this.btnExit.Location = new System.Drawing.Point(338, 315);
             this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(162, 23);
+            this.btnExit.Size = new System.Drawing.Size(162, 38);
             this.btnExit.TabIndex = 2;
             this.btnExit.Text = "Exit";
             this.btnExit.UseVisualStyleBackColor = true;
             // 
             // btnMange
             // 
-            this.btnMange.Location = new System.Drawing.Point(338, 235);
+            this.btnMange.Location = new System.Drawing.Point(338, 246);
             this.btnMange.Name = "btnMange";
-            this.btnMange.Size = new System.Drawing.Size(162, 23);
+            this.btnMange.Size = new System.Drawing.Size(162, 39);
             this.btnMange.TabIndex = 3;
             this.btnMange.Text = "Manage Users";
             this.btnMange.UseVisualStyleBackColor = true;
+            this.btnMange.Click += new System.EventHandler(this.btnMange_Click);
             // 
             // MainMenuForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(893, 544);
+            this.ClientSize = new System.Drawing.Size(821, 527);
             this.Controls.Add(this.btnMange);
             this.Controls.Add(this.btnExit);
             this.Controls.Add(this.btnVisitor);

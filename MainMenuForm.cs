@@ -16,5 +16,26 @@ namespace FacialRecognition
         {
             InitializeComponent();
         }
+
+        private void btnEmployee_Click(object sender, EventArgs e)
+        {
+            // Open the Main Menu Form form (Raza,2021)
+            EmployeeForm employee = new EmployeeForm();
+            employee.Show();
+            this.Hide(); // Hide Admin Form
+        }
+
+        private void btnMange_Click(object sender, EventArgs e)
+        {
+            // Open the Main Menu Form form (Raza,2021)
+            AcceptedUsersForm au = new AcceptedUsersForm();
+            au.Show();
+            this.Hide(); // Hide Admin Form
+        }
+
+        private void btnVisitor_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
