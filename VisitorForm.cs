@@ -2,34 +2,45 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Npgsql;
 
 namespace FacialRecognition
 {
     public partial class VisitorForm: Form
     {
 
-        string connectionString = @"Data Source= LAPTOP-EDM9E5LN;Initial Catalog=VisitorManagementDB;Integrated Security=True";
+        string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                                  $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                  $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                  $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                  $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                  $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+
 
         public VisitorForm()
         {
             InitializeComponent();
+            DotNetEnv.Env.Load();
             LoadVisitors();
         }
 
         private void LoadVisitors()
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "SELECT * FROM RequestTable WHERE Status = 'Visitor'";
-                SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                DataTable dt = new DataTable();
+                string sqlQuery;
+                NpgsqlDataAdapter da;
+                DataTable dt;
+
+                sqlQuery = "SELECT * FROM pending_visitors";
+                da = new NpgsqlDataAdapter(sqlQuery, conn);
+                dt = new DataTable();
                 da.Fill(dt);
                 dgvVisitors.DataSource = dt;
             }
@@ -39,7 +50,8 @@ namespace FacialRecognition
         {
             if (dgvVisitors.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["ID"].Value);
+                int id;
+                id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["pending_visitor_id"].Value);
                 AcceptUser(id);
             }
             ;
@@ -55,26 +67,32 @@ namespace FacialRecognition
 
         private void AcceptUser(int id)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                SqlTransaction transaction = conn.BeginTransaction();  // Start transaction
+                NpgsqlTransaction transaction = conn.BeginTransaction();  // Start transaction
 
                 try
                 {
-                    // Insert selected user into AcceptedTable
-                    string insertQuery = @"INSERT INTO AcceptedTable (Status, Name, Surname, Email, Password, DateOfEntry, PhoneNumber, QRCode, Image)
-                                   SELECT Status, Name, Surname, Email, Password, DateOfEntry, PhoneNumber, QRCode, Image
-                                   FROM RequestTable WHERE ID = @ID";
+                    // Insert selected user into visitors table
+                    string insertQuery;
+                    NpgsqlCommand insertCmd;
 
-                    SqlCommand insertCmd = new SqlCommand(insertQuery, conn, transaction);
-                    insertCmd.Parameters.AddWithValue("@ID", id);
+                    insertQuery = @"INSERT INTO visitors(visitor_id, rid, first_name, last_name, email, phone, qr_code_path)
+                                   SELECT pending_visitor_id, rid, first_name, last_name, email, phone, qr_code_path
+                                   FROM pending_visitors WHERE pending_visitor_id = @pending_visitor_id";
+
+                    insertCmd = new NpgsqlCommand(insertQuery, conn, transaction);
+                    insertCmd.Parameters.AddWithValue("@pending_visitor_id", id);
                     insertCmd.ExecuteNonQuery();
 
-                    // Delete the user from RequestTable
-                    string deleteQuery = "DELETE FROM RequestTable WHERE ID = @ID";
-                    SqlCommand deleteCmd = new SqlCommand(deleteQuery, conn, transaction);
-                    deleteCmd.Parameters.AddWithValue("@ID", id);
+                    // Delete the user from pending_visitors table
+                    string deleteQuery;
+                    NpgsqlCommand deleteCmd;
+
+                    deleteQuery = "DELETE FROM pending_visitors WHERE pending_visitor_id = @pending_visitor_id";
+                    deleteCmd = new NpgsqlCommand(deleteQuery, conn, transaction);
+                    deleteCmd.Parameters.AddWithValue("@pending_visitor_id", id);
                     deleteCmd.ExecuteNonQuery();
 
                     transaction.Commit(); // Commit transaction
@@ -91,12 +109,15 @@ namespace FacialRecognition
 
         private void DeclineUser(int id)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "DELETE FROM RequestTable WHERE ID = @ID";
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@ID", id);
+                string query;
+                NpgsqlCommand cmd;
+
+                query = "DELETE FROM pending_visitors WHERE pendind_visitor_id = @pending_visitor_id";
+                cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@pending_visitor_id", id);
                 cmd.ExecuteNonQuery();
                 LoadVisitors();
                 MessageBox.Show("User Declined!");
@@ -107,7 +128,7 @@ namespace FacialRecognition
         {
             if (dgvVisitors.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["ID"].Value);
+                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["pending_visitor_id"].Value);
                 DeclineUser(id);
             }
 
