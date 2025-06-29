@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -10,32 +9,42 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ZXing;
-using System.Data;
-using System.Data.SqlClient;
+using Npgsql;
 
 namespace FacialRecognition
 {
     public partial class EmployeeForm: Form
     {
-        //SqlConnection conn = new SqlConnection(@"Data Source=LAPTOP-EDM9E5LN;Initial Catalog=VisitorManagementDB;Integrated Security=True;");
 
         // private string connectionString = "your_connection_string_here"; // Replace with your database connection string
-        string connectionString = @"Data Source= LAPTOP-EDM9E5LN;Initial Catalog=VisitorManagementDB;Integrated Security=True";
+        string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                                  $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                  $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                  $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                  $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                  $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+
 
         public EmployeeForm()
         {
-            InitializeComponent(); 
+            InitializeComponent();
+            DotNetEnv.Env.Load();
             LoadEmployees();
+
         }
 
         private void LoadEmployees()
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "SELECT * FROM RequestTable WHERE Status = 'Employee'";
-                SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                DataTable dt = new DataTable();
+                string sqlQuery;
+                NpgsqlDataAdapter da;
+                DataTable dt;
+
+                sqlQuery = "SELECT * FROM pending_employees";
+                da       = new NpgsqlDataAdapter(sqlQuery, conn);
+                dt       = new DataTable();
                 da.Fill(dt);
                 dgvEmployee.DataSource = dt;
             }
@@ -45,7 +54,8 @@ namespace FacialRecognition
         {
             if (dgvEmployee.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["ID"].Value);
+                int id;
+                id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["pending_emp_id"].Value);
                 AcceptUser(id);
             }
             ;
@@ -64,33 +74,38 @@ namespace FacialRecognition
         {
             if (dgvEmployee.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["ID"].Value);
+                int id;
+                id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["pending_emp_id"].Value);
                 DeclineUser(id);
             }
         }
 
         private void AcceptUser(int id)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                SqlTransaction transaction = conn.BeginTransaction();  // Start transaction
+                NpgsqlTransaction transaction;
+                transaction = conn.BeginTransaction();  // Start transaction
 
                 try
                 {
-                    // Insert selected user into AcceptedTable
-                    string insertQuery = @"INSERT INTO AcceptedTable (Status, Name, Surname, Email, Password, DateOfEntry, PhoneNumber, QRCode, Image)
-                                   SELECT Status, Name, Surname, Email, Password, DateOfEntry, PhoneNumber, QRCode, Image
-                                   FROM RequestTable WHERE ID = @ID";
+                    // Insert selected user into employees
+                    string insertQuery;
+                    NpgsqlCommand insertCmd;
 
-                    SqlCommand insertCmd = new SqlCommand(insertQuery, conn, transaction);
-                    insertCmd.Parameters.AddWithValue("@ID", id);
+                    insertQuery = @"INSERT INTO employees (emp_id, rid, first_name, last_name, email, phone, password, facial_path, qr_code_path)
+                                    SELECT pending_emp_id, rid, first_name, last_name, email, phone, password, facial_path, qr_code_path
+                                    FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
+
+                    insertCmd = new NpgsqlCommand(insertQuery, conn, transaction);
+                    insertCmd.Parameters.AddWithValue("@pending_emp_id", id);
                     insertCmd.ExecuteNonQuery();
 
-                    // Delete the user from RequestTable
-                    string deleteQuery = "DELETE FROM RequestTable WHERE ID = @ID";
-                    SqlCommand deleteCmd = new SqlCommand(deleteQuery, conn, transaction);
-                    deleteCmd.Parameters.AddWithValue("@ID", id);
+                    // Delete the user from pending_employees Table
+                    string deleteQuery = "DELETE FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
+                    NpgsqlCommand deleteCmd = new NpgsqlCommand(deleteQuery, conn, transaction);
+                    deleteCmd.Parameters.AddWithValue("@rid", id);
                     deleteCmd.ExecuteNonQuery();
 
                     transaction.Commit(); // Commit transaction
@@ -107,16 +122,21 @@ namespace FacialRecognition
 
         private void DeclineUser(int id)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "DELETE FROM RequestTable WHERE ID = @ID";
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@ID", id);
+                string query = "DELETE FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
+                NpgsqlCommand cmd = new NpgsqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@pending_emp_id", id);
                 cmd.ExecuteNonQuery();
                 LoadEmployees();
                 MessageBox.Show("User Declined!");
             }
+        }
+
+        private void EmployeeForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
