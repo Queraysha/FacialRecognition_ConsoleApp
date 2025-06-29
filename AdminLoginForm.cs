@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Npgsql;
 
 namespace FacialRecognition
 {
@@ -16,6 +16,7 @@ namespace FacialRecognition
         public AdminLoginForm()
         {
             InitializeComponent();
+            DotNetEnv.Env.Load();
         }
 
         private void btnSubmit_Click(object sender, EventArgs e)
@@ -46,16 +47,23 @@ namespace FacialRecognition
 
         private bool ValidateUser(string username, string password)
         {
-            string connectionString = @"Data Source= LAPTOP-EDM9E5LN;Initial Catalog=VisitorManagementDB;Integrated Security=True";
+            string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                                      $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                      $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                      $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                      $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                      $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
-            string query = "SELECT COUNT(1) FROM Admins WHERE Username = @username AND Password = @password";
+
+            string query = "SELECT * FROM admins " +
+                           "WHERE username = @username AND password = @password";
 
             try
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@username", username);
                         cmd.Parameters.AddWithValue("@password", password);
@@ -72,5 +80,9 @@ namespace FacialRecognition
             }
         }
 
+        private void AdminLoginForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

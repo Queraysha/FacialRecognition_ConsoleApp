@@ -100,6 +100,7 @@
             this.Controls.Add(this.label1);
             this.Name = "AdminLoginForm";
             this.Text = "AdminLogin";
+            this.Load += new System.EventHandler(this.AdminLoginForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
