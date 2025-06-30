@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,37 +11,54 @@ using System.Speech.Synthesis;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Npgsql;
 
 namespace FacialRecognition
 {
     public partial class AcceptedUsersForm: Form
     {
-
-        private string connectionString = @"Data Source= LAPTOP-EDM9E5LN;Initial Catalog=VisitorManagementDB;Integrated Security=True";
-
-
         public AcceptedUsersForm()
         {
             InitializeComponent();
+            DotNetEnv.Env.Load();
             LoadAcceptedUsers();
         }
+
+        private string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                                          $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                          $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                          $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                          $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                          $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+
+
         private void LoadAcceptedUsers()
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
 
                 // Load Employees
-                string employeeQuery = "SELECT * FROM AcceptedTable WHERE Status = 'Employee'";
-                SqlDataAdapter employeeAdapter = new SqlDataAdapter(employeeQuery, conn);
-                DataTable employeeTable = new DataTable();
+                string employeeQuery;
+                NpgsqlDataAdapter employeeAdapter;
+                DataTable employeeTable;
+
+
+                employeeQuery = "SELECT * FROM employees";
+                employeeAdapter = new NpgsqlDataAdapter(employeeQuery, conn);
+                employeeTable = new DataTable();
                 employeeAdapter.Fill(employeeTable);
                 dgvEmployee.DataSource = employeeTable;
 
+
                 // Load Visitors
-                string visitorQuery = "SELECT * FROM AcceptedTable WHERE Status = 'Visitor'";
-                SqlDataAdapter visitorAdapter = new SqlDataAdapter(visitorQuery, conn);
-                DataTable visitorTable = new DataTable();
+                string visitorQuery;
+                NpgsqlDataAdapter visitorAdapter;
+                DataTable visitorTable;
+
+                visitorQuery = "SELECT * FROM visitors";
+                visitorAdapter = new NpgsqlDataAdapter(visitorQuery, conn);
+                visitorTable = new DataTable();
                 visitorAdapter.Fill(visitorTable);
                 dgvVisitors.DataSource = visitorTable;
             }
@@ -52,26 +68,32 @@ namespace FacialRecognition
         {
             if (dgvEmployee.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["ID"].Value);
+                int id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["emp_id"].Value);
                 UpdateUser(id);
             }
             else if (dgvVisitors.CurrentRow != null)
             {
-                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["ID"].Value);
+                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["visitor_id"].Value);
                 UpdateUser(id);
             }
         }
 
         private void UpdateUser(int id)
         {
-            string newName = Prompt.ShowDialog("Enter new name:", "Update User");
-            string newSurname = Prompt.ShowDialog("Enter new surname:", "Update User");
+            string newName;
+            string newSurname;
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            newName = Prompt.ShowDialog("Enter new name:", "Update User");
+            newSurname = Prompt.ShowDialog("Enter new surname:", "Update User");
+
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "UPDATE AcceptedTable SET Name = @Name, Surname = @Surname WHERE ID = @ID";
-                SqlCommand cmd = new SqlCommand(query, conn);
+                string query;
+                NpgsqlCommand cmd;
+
+                query = "UPDATE AcceptedTable SET Name = @Name, Surname = @Surname WHERE ID = @ID";
+                cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Name", newName);
                 cmd.Parameters.AddWithValue("@Surname", newSurname);
                 cmd.Parameters.AddWithValue("@ID", id);
@@ -98,11 +120,11 @@ namespace FacialRecognition
 
         private void RemoveUser(int id)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
                 string query = "DELETE FROM AcceptedTable WHERE ID = @ID";
-                SqlCommand cmd = new SqlCommand(query, conn);
+                NpgsqlCommand cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@ID", id);
                 cmd.ExecuteNonQuery();
 

@@ -15,9 +15,15 @@ namespace FacialRecognition
 {
     public partial class EmployeeForm: Form
     {
+        public EmployeeForm()
+        {
+            InitializeComponent();
+            DotNetEnv.Env.Load();
+            LoadEmployees();
+        }
 
-        // private string connectionString = "your_connection_string_here"; // Replace with your database connection string
-        string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+
+        private string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
                                   $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
                                   $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
                                   $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
@@ -25,13 +31,6 @@ namespace FacialRecognition
                                   $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
 
-        public EmployeeForm()
-        {
-            InitializeComponent();
-            DotNetEnv.Env.Load();
-            LoadEmployees();
-
-        }
 
         private void LoadEmployees()
         {

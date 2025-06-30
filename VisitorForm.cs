@@ -13,8 +13,14 @@ namespace FacialRecognition
 {
     public partial class VisitorForm: Form
     {
+        public VisitorForm()
+        {
+            InitializeComponent();
+            DotNetEnv.Env.Load();
+            LoadVisitors();
+        }
 
-        string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+        private string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
                                   $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
                                   $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
                                   $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
@@ -22,12 +28,6 @@ namespace FacialRecognition
                                   $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
 
-        public VisitorForm()
-        {
-            InitializeComponent();
-            DotNetEnv.Env.Load();
-            LoadVisitors();
-        }
 
         private void LoadVisitors()
         {
@@ -60,7 +60,8 @@ namespace FacialRecognition
         private void btnBack_Click(object sender, EventArgs e)
         {
             // Open the Main Menu Form form (Raza,2021)
-            MainMenuForm mm = new MainMenuForm();
+            MainMenuForm mm;
+            mm = new MainMenuForm();
             mm.Show();
             this.Hide(); // Hide Admin Form
         }

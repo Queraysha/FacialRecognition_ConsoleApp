@@ -22,8 +22,11 @@ namespace FacialRecognition
         private void btnSubmit_Click(object sender, EventArgs e)
         {
 
-            string username = txtUsername.Text.Trim();
-            string password = txtPassword.Text.Trim();
+            string username;
+            string password;
+
+            username = txtUsername.Text.Trim();
+            password = txtPassword.Text.Trim();
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
@@ -35,7 +38,9 @@ namespace FacialRecognition
             {
                 MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // Open the Main Menu Form form (Raza,2021)
-                MainMenuForm mm = new MainMenuForm();
+                MainMenuForm mm;
+
+                mm = new MainMenuForm();
                 mm.Show();
                 this.Hide(); // Hide Admin Form
             }
@@ -47,28 +52,33 @@ namespace FacialRecognition
 
         private bool ValidateUser(string username, string password)
         {
-            string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
-                                      $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
-                                      $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
-                                      $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
-                                      $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
-                                      $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+            string connectionString;
+            string sqlQuery;
+            
+            connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                               $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                               $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                               $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                               $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                               $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
-
-            string query = "SELECT * FROM admins " +
-                           "WHERE username = @username AND password = @password";
+           
+            sqlQuery = "SELECT * FROM admins " +
+                       "WHERE username = @username AND password = @password";
 
             try
             {
                 using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
                 {
                     conn.Open();
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand(sqlQuery, conn))
                     {
+                        int count;
+
                         cmd.Parameters.AddWithValue("@username", username);
                         cmd.Parameters.AddWithValue("@password", password);
 
-                        int count = (int)cmd.ExecuteScalar();
+                        count = (int)cmd.ExecuteScalar();
                         return count == 1;
                     }
                 }
