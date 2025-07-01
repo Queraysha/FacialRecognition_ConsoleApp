@@ -1,41 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using Npgsql;
 
 namespace ManageStoredUsersForm.cs
 {
     public partial class UpdateUserForm : Form
     {
-        private int _userId;
-        private string _connectionString = "Data Source=lindiwe;Initial Catalog=YourDatabase;Integrated Security=True";
-        private string _qrCode;
-        private string _imagePath;
-
-        public UpdateUserForm(int userId, string rid, string status, string name, string surname, string email,
-                             string password, DateTime? entryDate, string phoneNumber, string qrCode, string imagePath)
+        public UpdateUserForm(string userType, int userId, string rid, string name, string surname, string email,
+                                string password, string phoneNumber, string qrCode, string imagePath)
         {
             InitializeComponent();
+            DotNetEnv.Env.Load();
 
+            _userType = userType.ToLower(); // "employee" or "visitor"
             _userId = userId;
             _qrCode = qrCode;
             _imagePath = imagePath;
 
-            // Populate the status (vis/emp) dropdown
-            cmbStatus.Items.Add("vis");
-            cmbStatus.Items.Add("emp");
-
-            // Set the current status
-            cmbStatus.SelectedItem = status;
-
-            // Populate form fields with user data
-
+            cmbStatus.Items.Add("employee");
+            cmbStatus.Items.Add("visitor");
+            cmbStatus.SelectedItem = _userType;
 
             txtRID.Text = rid;
             txtName.Text = name;
@@ -44,123 +30,104 @@ namespace ManageStoredUsersForm.cs
             txtPassword.Text = password;
             txtPhoneNumber.Text = phoneNumber;
 
-            if (entryDate.HasValue)
-            {
-                dtpEntryDate.MaxDate = entryDate.Value;
-            }
-            else
-            {
-                dtpEntryDate.MaxDate = DateTime.Now;
-            }
-
-            // Update field visibility based on status (vis/emp)
             UpdateFieldVisibility();
         }
+
+
+        private readonly int _userId;
+        private readonly string _userType; // "employee" or "visitor"
+
+        private readonly string _connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
+                               $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                               $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                               $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                               $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                               $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+
+
+        private readonly string _qrCode;
+        private readonly string _imagePath;
+
+      
 
         private void UpdateFieldVisibility()
         {
-            string status = cmbStatus.SelectedItem?.ToString();
-
-            // Password only for employees
-            lblPassword.Visible = status == "emp";
-            txtPassword.Visible = status == "emp";
-
-            // Entry date only for visitors
-            lblEntryDate.Visible = status == "vis";
-            dtpEntryDate.Visible = status == "vis";
-            dtpEntryDate.Visible = status == "vis"; // Show calendar only for visitors
-        }
-
-        private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateFieldVisibility();
+            bool isEmployee = _userType == "employee";
+            lblPassword.Visible = isEmployee;
+            txtPassword.Visible = isEmployee;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
             try
             {
-                // Validate required fields
-                if (
-                    string.IsNullOrWhiteSpace(txtName.Text) ||
+                if (string.IsNullOrWhiteSpace(txtName.Text) ||
                     string.IsNullOrWhiteSpace(txtSurname.Text) ||
-                    string.IsNullOrWhiteSpace(txtEmail.Text) ||
-                    cmbStatus.SelectedItem == null)
+                    string.IsNullOrWhiteSpace(txtEmail.Text))
                 {
                     MessageBox.Show("Please fill in all required fields.", "Validation Error",
-                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // Additional validation for employees (must have password)
-                if (cmbStatus.SelectedItem.ToString() == "emp" && string.IsNullOrWhiteSpace(txtPassword.Text))
-                {
-                    MessageBox.Show("Password is required for employees.", "Validation Error",
-                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (var connection = new NpgsqlConnection(_connectionString))
                 {
                     connection.Open();
 
-                    string query = @"UPDATE StoredUsers SET 
-                                     RID = @RID, 
-                                    Status = @Status, 
-                                    Name = @Name, 
-                                    Surname = @Surname, 
-                                    Email = @Email, 
-                                    Password = @Password, 
-                                    EntryDate = @EntryDate,
-                                    PhoneNumber = @PhoneNumber
-                                    WHERE Id = @Id";
+                    string query;
+                    var command = new NpgsqlCommand();
+                    command.Connection = connection;
 
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                    if (_userType == "employee")
                     {
-                        command.Parameters.AddWithValue("@RID", txtRID.Text);
-                        command.Parameters.AddWithValue("@Status", cmbStatus.SelectedItem.ToString());
-                        command.Parameters.AddWithValue("@Name", txtName.Text);
-                        command.Parameters.AddWithValue("@Surname", txtSurname.Text);
-                        command.Parameters.AddWithValue("@Email", txtEmail.Text);
+                        query = @"
+                            UPDATE employees SET 
+                                rid = @rid,
+                                first_name = @first_name,
+                                last_name = @last_name,
+                                email = @email,
+                                phone = @phone,
+                                password = @password
+                            WHERE emp_id = @id";
 
-                        // Handle conditional fields
-                        if (cmbStatus.SelectedItem.ToString() == "emp")
-                        {
-                            command.Parameters.AddWithValue("@Password", txtPassword.Text);
-                            command.Parameters.AddWithValue("@EntryDate", DBNull.Value);
-                        }
-                        else // visitor
-                        {
-                            command.Parameters.AddWithValue("@Password", DBNull.Value);
-                            command.Parameters.AddWithValue("@EntryDate", dtpEntryDate.MaxDate);
-                        }
+                        command.CommandText = query;
+                        command.Parameters.AddWithValue("@password", txtPassword.Text);
+                    }
+                    else // visitor
+                    {
+                        query = @"
+                            UPDATE visitors SET 
+                                rid = @rid,
+                                first_name = @first_name,
+                                last_name = @last_name,
+                                email = @email,
+                                phone = @phone
+                            WHERE visitor_id = @id";
 
-                        // Handle optional field
-                        if (string.IsNullOrWhiteSpace(txtPhoneNumber.Text))
-                        {
-                            command.Parameters.AddWithValue("@PhoneNumber", DBNull.Value);
-                        }
-                        else
-                        {
-                            command.Parameters.AddWithValue("@PhoneNumber", txtPhoneNumber.Text);
-                        }
+                        command.CommandText = query;
+                    }
 
-                        command.Parameters.AddWithValue("@Id", _userId);
+                    // Common parameters
+                    command.Parameters.AddWithValue("@rid", txtRID.Text);
+                    command.Parameters.AddWithValue("@first_name", txtName.Text);
+                    command.Parameters.AddWithValue("@last_name", txtSurname.Text);
+                    command.Parameters.AddWithValue("@email", txtEmail.Text);
+                    command.Parameters.AddWithValue("@phone", string.IsNullOrWhiteSpace(txtPhoneNumber.Text) ? (object)DBNull.Value : txtPhoneNumber.Text);
+                    command.Parameters.AddWithValue("@id", _userId);
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                    int rowsAffected = command.ExecuteNonQuery();
 
-                        if (rowsAffected > 0)
-                        {
-                            MessageBox.Show("User updated successfully!", "Success",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            DialogResult = DialogResult.OK;
-                            Close();
-                        }
-                        else
-                        {
-                            MessageBox.Show("No changes were made.", "Information",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("User updated successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        DialogResult = DialogResult.OK;
+                        Close();
+                    }
+                    else
+                    {
+                        MessageBox.Show("No changes were made.", "Info",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
@@ -177,23 +144,15 @@ namespace ManageStoredUsersForm.cs
             Close();
         }
 
-        private void dtpEntryDate_DateChanged(object sender, DateRangeEventArgs e)
+        private void UpdateUserForm_Load(object sender, EventArgs e)
         {
-            // This code will run when the user selects a different date
-            DateTime selectedDate = dtpEntryDate.SelectionStart;
-            MessageBox.Show($"Selected date: {selectedDate.ToShortDateString()}");
+            // Optional: add startup behavior here
+        }
 
-            dtpEntryDate.Visible = !dtpEntryDate.Visible;
-            if (dtpEntryDate.Visible)
-            {
-                // Position the calendar near the date time picker if needed
-                dtpEntryDate.Location = new Point(dtpEntryDate.Location.X,
-                                                  dtpEntryDate.Location.Y + dtpEntryDate.Height);
-            }
-
-
-
-
+        private void cmbStatus_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Optional: dynamically change visibility if status is made editable
+            UpdateFieldVisibility();
         }
     }
 }

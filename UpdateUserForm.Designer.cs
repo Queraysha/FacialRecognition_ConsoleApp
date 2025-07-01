@@ -42,8 +42,6 @@
             this.txtPassword = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.txtPhoneNumber = new System.Windows.Forms.TextBox();
-            this.dtpEntryDate = new System.Windows.Forms.MonthCalendar();
-            this.lblEntryDate = new System.Windows.Forms.Label();
             this.lblRID = new System.Windows.Forms.Label();
             this.txtRID = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
@@ -51,7 +49,7 @@
             // txtName
             // 
             this.txtName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtName.Location = new System.Drawing.Point(188, 117);
+            this.txtName.Location = new System.Drawing.Point(188, 165);
             this.txtName.Name = "txtName";
             this.txtName.Size = new System.Drawing.Size(167, 22);
             this.txtName.TabIndex = 0;
@@ -59,7 +57,7 @@
             // txtEmail
             // 
             this.txtEmail.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtEmail.Location = new System.Drawing.Point(188, 241);
+            this.txtEmail.Location = new System.Drawing.Point(188, 275);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.Size = new System.Drawing.Size(167, 22);
             this.txtEmail.TabIndex = 2;
@@ -67,7 +65,7 @@
             // txtSurname
             // 
             this.txtSurname.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtSurname.Location = new System.Drawing.Point(188, 182);
+            this.txtSurname.Location = new System.Drawing.Point(188, 223);
             this.txtSurname.Name = "txtSurname";
             this.txtSurname.Size = new System.Drawing.Size(167, 22);
             this.txtSurname.TabIndex = 3;
@@ -76,7 +74,7 @@
             // 
             this.lblName.AutoSize = true;
             this.lblName.BackColor = System.Drawing.Color.DodgerBlue;
-            this.lblName.Location = new System.Drawing.Point(32, 119);
+            this.lblName.Location = new System.Drawing.Point(32, 171);
             this.lblName.Name = "lblName";
             this.lblName.Size = new System.Drawing.Size(50, 16);
             this.lblName.TabIndex = 4;
@@ -85,7 +83,7 @@
             // lblLastName
             // 
             this.lblLastName.AutoSize = true;
-            this.lblLastName.Location = new System.Drawing.Point(32, 178);
+            this.lblLastName.Location = new System.Drawing.Point(32, 229);
             this.lblLastName.Name = "lblLastName";
             this.lblLastName.Size = new System.Drawing.Size(61, 16);
             this.lblLastName.TabIndex = 5;
@@ -94,7 +92,7 @@
             // lblEmail
             // 
             this.lblEmail.AutoSize = true;
-            this.lblEmail.Location = new System.Drawing.Point(32, 243);
+            this.lblEmail.Location = new System.Drawing.Point(32, 281);
             this.lblEmail.Name = "lblEmail";
             this.lblEmail.Size = new System.Drawing.Size(98, 16);
             this.lblEmail.TabIndex = 6;
@@ -103,7 +101,7 @@
             // lblDepartment
             // 
             this.lblDepartment.AutoSize = true;
-            this.lblDepartment.Location = new System.Drawing.Point(32, 313);
+            this.lblDepartment.Location = new System.Drawing.Point(32, 112);
             this.lblDepartment.Name = "lblDepartment";
             this.lblDepartment.Size = new System.Drawing.Size(44, 16);
             this.lblDepartment.TabIndex = 7;
@@ -112,7 +110,7 @@
             // btnSave
             // 
             this.btnSave.BackColor = System.Drawing.Color.DarkOrange;
-            this.btnSave.Location = new System.Drawing.Point(589, 26);
+            this.btnSave.Location = new System.Drawing.Point(533, 125);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(177, 77);
             this.btnSave.TabIndex = 8;
@@ -123,7 +121,7 @@
             // btnCancel
             // 
             this.btnCancel.BackColor = System.Drawing.Color.DarkOrange;
-            this.btnCancel.Location = new System.Drawing.Point(589, 127);
+            this.btnCancel.Location = new System.Drawing.Point(533, 281);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(177, 77);
             this.btnCancel.TabIndex = 9;
@@ -134,15 +132,16 @@
             // cmbStatus
             // 
             this.cmbStatus.FormattingEnabled = true;
-            this.cmbStatus.Location = new System.Drawing.Point(188, 305);
+            this.cmbStatus.Location = new System.Drawing.Point(188, 104);
             this.cmbStatus.Name = "cmbStatus";
             this.cmbStatus.Size = new System.Drawing.Size(167, 24);
             this.cmbStatus.TabIndex = 10;
+            //this.cmbStatus.SelectedIndexChanged += new System.EventHandler(this.cmbStatus_SelectedIndexChanged_1);
             // 
             // lblPassword
             // 
             this.lblPassword.AutoSize = true;
-            this.lblPassword.Location = new System.Drawing.Point(32, 369);
+            this.lblPassword.Location = new System.Drawing.Point(32, 330);
             this.lblPassword.Name = "lblPassword";
             this.lblPassword.Size = new System.Drawing.Size(67, 16);
             this.lblPassword.TabIndex = 11;
@@ -151,7 +150,7 @@
             // txtPassword
             // 
             this.txtPassword.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPassword.Location = new System.Drawing.Point(188, 367);
+            this.txtPassword.Location = new System.Drawing.Point(188, 330);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(167, 22);
             this.txtPassword.TabIndex = 12;
@@ -159,7 +158,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(32, 425);
+            this.label2.Location = new System.Drawing.Point(32, 395);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(97, 16);
             this.label2.TabIndex = 13;
@@ -168,32 +167,16 @@
             // txtPhoneNumber
             // 
             this.txtPhoneNumber.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtPhoneNumber.Location = new System.Drawing.Point(188, 418);
+            this.txtPhoneNumber.Location = new System.Drawing.Point(188, 395);
             this.txtPhoneNumber.Name = "txtPhoneNumber";
             this.txtPhoneNumber.Size = new System.Drawing.Size(167, 22);
             this.txtPhoneNumber.TabIndex = 14;
-            // 
-            // dtpEntryDate
-            // 
-            this.dtpEntryDate.Location = new System.Drawing.Point(489, 233);
-            this.dtpEntryDate.Name = "dtpEntryDate";
-            this.dtpEntryDate.TabIndex = 15;
-            this.dtpEntryDate.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.dtpEntryDate_DateChanged);
-            // 
-            // lblEntryDate
-            // 
-            this.lblEntryDate.AutoSize = true;
-            this.lblEntryDate.Location = new System.Drawing.Point(396, 339);
-            this.lblEntryDate.Name = "lblEntryDate";
-            this.lblEntryDate.Size = new System.Drawing.Size(69, 16);
-            this.lblEntryDate.TabIndex = 16;
-            this.lblEntryDate.Text = "Entry Date";
             // 
             // lblRID
             // 
             this.lblRID.AutoSize = true;
             this.lblRID.BackColor = System.Drawing.Color.DodgerBlue;
-            this.lblRID.Location = new System.Drawing.Point(32, 56);
+            this.lblRID.Location = new System.Drawing.Point(32, 37);
             this.lblRID.Name = "lblRID";
             this.lblRID.Size = new System.Drawing.Size(30, 16);
             this.lblRID.TabIndex = 17;
@@ -202,7 +185,7 @@
             // txtRID
             // 
             this.txtRID.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtRID.Location = new System.Drawing.Point(188, 50);
+            this.txtRID.Location = new System.Drawing.Point(188, 31);
             this.txtRID.Name = "txtRID";
             this.txtRID.Size = new System.Drawing.Size(167, 22);
             this.txtRID.TabIndex = 18;
@@ -215,8 +198,6 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.txtRID);
             this.Controls.Add(this.lblRID);
-            this.Controls.Add(this.lblEntryDate);
-            this.Controls.Add(this.dtpEntryDate);
             this.Controls.Add(this.txtPhoneNumber);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtPassword);
@@ -235,6 +216,7 @@
             this.Name = "UpdateUserForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Update User";
+            this.Load += new System.EventHandler(this.UpdateUserForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -256,8 +238,6 @@
         private System.Windows.Forms.TextBox txtPassword;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtPhoneNumber;
-        private System.Windows.Forms.MonthCalendar dtpEntryDate;
-        private System.Windows.Forms.Label lblEntryDate;
         private System.Windows.Forms.Label lblRID;
         private System.Windows.Forms.TextBox txtRID;
     }
