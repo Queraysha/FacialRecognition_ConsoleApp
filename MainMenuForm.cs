@@ -38,5 +38,10 @@ namespace FacialRecognition
             vf.Show();
             this.Hide(); // Hide Admin Form
         }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
     }
 }

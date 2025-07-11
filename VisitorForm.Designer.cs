@@ -97,6 +97,7 @@
             this.Controls.Add(this.dgvVisitors);
             this.Name = "VisitorForm";
             this.Text = "VisitorForm";
+            this.Load += new System.EventHandler(this.VisitorForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvVisitors)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

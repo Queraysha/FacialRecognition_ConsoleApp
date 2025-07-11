@@ -14,20 +14,20 @@ namespace ManageStoredUsersForm.cs
             InitializeComponent();
             DotNetEnv.Env.Load();
 
-            _userType = userType.ToLower(); // "employee" or "visitor"
-            _userId = userId;
-            _qrCode = qrCode;
+            _userType  = userType.ToLower(); // "employee" or "visitor"
+            _userId    = userId;
+            _qrCode    = qrCode;
             _imagePath = imagePath;
 
             cmbStatus.Items.Add("employee");
             cmbStatus.Items.Add("visitor");
             cmbStatus.SelectedItem = _userType;
 
-            txtRID.Text = rid;
-            txtName.Text = name;
-            txtSurname.Text = surname;
-            txtEmail.Text = email;
-            txtPassword.Text = password;
+            txtRID.Text         = rid;
+            txtName.Text        = name;
+            txtSurname.Text     = surname;
+            txtEmail.Text       = email;
+            txtPassword.Text    = password;
             txtPhoneNumber.Text = phoneNumber;
 
             UpdateFieldVisibility();
@@ -38,11 +38,11 @@ namespace ManageStoredUsersForm.cs
         private readonly string _userType; // "employee" or "visitor"
 
         private readonly string _connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
-                               $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
-                               $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
-                               $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
-                               $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
-                               $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+                                                    $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                                    $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                                    $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                                    $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                                    $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
 
         private readonly string _qrCode;

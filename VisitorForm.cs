@@ -134,6 +134,11 @@ namespace FacialRecognition
             }
 
         }
+
+        private void VisitorForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
 

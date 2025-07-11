@@ -94,7 +94,7 @@ namespace FacialRecognition
                     NpgsqlCommand insertCmd;
 
                     insertQuery = @"INSERT INTO employees (emp_id, rid, first_name, last_name, email, phone, password, facial_path, qr_code_path)
-                                    SELECT pending_emp_id, rid, first_name, last_name, email, phone, password, facial_path, qr_code_path
+                                    SELECT pending_emp_id, rid, first_name, last_name, email, phone, user_password, facial_path, qr_code_path
                                     FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
 
                     insertCmd = new NpgsqlCommand(insertQuery, conn, transaction);
@@ -104,7 +104,7 @@ namespace FacialRecognition
                     // Delete the user from pending_employees Table
                     string deleteQuery = "DELETE FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
                     NpgsqlCommand deleteCmd = new NpgsqlCommand(deleteQuery, conn, transaction);
-                    deleteCmd.Parameters.AddWithValue("@rid", id);
+                    deleteCmd.Parameters.AddWithValue("@pending_emp_id", id);
                     deleteCmd.ExecuteNonQuery();
 
                     transaction.Commit(); // Commit transaction

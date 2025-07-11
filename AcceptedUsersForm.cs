@@ -148,5 +148,18 @@ namespace FacialRecognition
                 }
             }
         }
+
+        private void AcceptedUsersForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+    
+            MainMenuForm mm = new MainMenuForm();
+            mm.Show();
+            this.Hide(); // Hide Admin Form
+        }
     }
 }
