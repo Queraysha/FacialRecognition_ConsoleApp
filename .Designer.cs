@@ -34,12 +34,13 @@
             // 
             // btnNext
             // 
-            this.btnNext.Location = new System.Drawing.Point(335, 282);
+            this.btnNext.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.btnNext.Location = new System.Drawing.Point(305, 292);
             this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(75, 23);
+            this.btnNext.Size = new System.Drawing.Size(161, 65);
             this.btnNext.TabIndex = 0;
-            this.btnNext.Text = "Next";
-            this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Text = "LOGIN";
+            this.btnNext.UseVisualStyleBackColor = false;
             this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             // 
             // label1
@@ -59,7 +60,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnNext);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "ADMIN DASHBOARD";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -51,7 +51,7 @@ namespace FacialRecognition
                 string name = row.Cells["first_name"].Value?.ToString() ?? "";
                 string surname = row.Cells["last_name"].Value?.ToString() ?? "";
                 string email = row.Cells["email"].Value?.ToString() ?? "";
-                string password = row.Cells["password"].Value?.ToString() ?? "";
+                string password = row.Cells["user_password"].Value?.ToString() ?? "";
                 string phoneNumber = row.Cells["phone"]?.Value?.ToString() ?? "";
                 string qrCode = row.Cells["qr_code_path"]?.Value?.ToString() ?? "";
                 string imagePath = row.Cells["facial_path"]?.Value?.ToString() ?? "";

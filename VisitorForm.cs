@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using Npgsql;
+using System;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Npgsql;
+using QRCoder;
+
+
 
 namespace FacialRecognition
 {
@@ -51,8 +48,10 @@ namespace FacialRecognition
             if (dgvVisitors.CurrentRow != null)
             {
                 int id;
+
                 id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["pending_visitor_id"].Value);
                 AcceptUser(id);
+                
             }
             ;
         }
@@ -77,14 +76,54 @@ namespace FacialRecognition
                 {
                     // Insert selected user into visitors table
                     string insertQuery;
+                    string qrCodeBase64;
+
+                    string selectQuery = @"SELECT rid, first_name, last_name, email, phone, registration_date FROM pending_visitors WHERE pending_visitor_id = @id";
+                    string qrCodeDataString;
+
+                    string rid = "", firstName = "", lastName = "", email = "", phone = "";
+
+                    using (NpgsqlCommand selectCmd = new NpgsqlCommand(selectQuery, conn, transaction))
+                    {
+                        selectCmd.Parameters.AddWithValue("@id", id);
+                        using (var reader = selectCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                rid = reader["rid"].ToString();
+                                firstName = reader["first_name"].ToString();
+                                lastName = reader["last_name"].ToString();
+                                email = reader["email"].ToString();
+                                phone = reader["phone"].ToString();
+                            }
+                            else
+                            {
+                                throw new Exception("Employee not found.");
+                            }
+                        }
+                    }
+
+                    // 2. Create QR content from the retrieved data
+                    qrCodeDataString = $"ID: {id}\nRID: {rid}\nName: {firstName} {lastName}\nEmail: {email}\nPhone: {phone}";
+
+                    // 3. Generate QR code
+                    using (QRCodeGenerator qrCodeGenerator = new QRCodeGenerator())
+                    using (QRCodeData qrCodeData = qrCodeGenerator.CreateQrCode(qrCodeDataString, QRCodeGenerator.ECCLevel.Q))
+                    using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
+                    {
+                        byte[] qrCodeImage = qrCode.GetGraphic(20);
+                        qrCodeBase64 = Convert.ToBase64String(qrCodeImage);
+                    }
+
                     NpgsqlCommand insertCmd;
 
                     insertQuery = @"INSERT INTO visitors(visitor_id, rid, first_name, last_name, email, phone, qr_code_path)
-                                   SELECT pending_visitor_id, rid, first_name, last_name, email, phone, qr_code_path
+                                   SELECT pending_visitor_id, rid, first_name, last_name, email, phone, @qr_code_path
                                    FROM pending_visitors WHERE pending_visitor_id = @pending_visitor_id";
 
                     insertCmd = new NpgsqlCommand(insertQuery, conn, transaction);
                     insertCmd.Parameters.AddWithValue("@pending_visitor_id", id);
+                    insertCmd.Parameters.AddWithValue("@qr_code_path", qrCodeBase64);
                     insertCmd.ExecuteNonQuery();
 
                     // Delete the user from pending_visitors table

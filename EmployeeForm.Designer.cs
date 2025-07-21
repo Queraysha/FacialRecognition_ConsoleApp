@@ -96,7 +96,7 @@
             this.Controls.Add(this.btnAccept);
             this.Controls.Add(this.dgvEmployee);
             this.Name = "EmployeeForm";
-            this.Text = "EmployeeForm";
+            this.Text = "Employee Form";
             this.Load += new System.EventHandler(this.EmployeeForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvEmployee)).EndInit();
             this.ResumeLayout(false);

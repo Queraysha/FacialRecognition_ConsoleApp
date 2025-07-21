@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ZXing;
 using Npgsql;
+using QRCoder;
 
 namespace FacialRecognition
 {
@@ -91,14 +92,54 @@ namespace FacialRecognition
                 {
                     // Insert selected user into employees
                     string insertQuery;
+                    string qrCodeBase64;
+
+                    string selectQuery = @"SELECT rid, first_name, last_name, email, phone, registration_date FROM pending_employees WHERE pending_emp_id = @id";
+                    string qrCodeDataString;
+
+                    string rid = "", firstName = "", lastName = "", email = "", phone = "";
+
+                    using (NpgsqlCommand selectCmd = new NpgsqlCommand(selectQuery, conn, transaction))
+                    {
+                        selectCmd.Parameters.AddWithValue("@id", id);
+                        using (var reader = selectCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                rid = reader["rid"].ToString();
+                                firstName = reader["first_name"].ToString();
+                                lastName = reader["last_name"].ToString();
+                                email = reader["email"].ToString();
+                                phone = reader["phone"].ToString();
+                            }
+                            else
+                            {
+                                throw new Exception("Employee not found.");
+                            }
+                        }
+                    }
+
+                    // 2. Create QR content from the retrieved data
+                    qrCodeDataString = $"ID: {id}\nRID: {rid}\nName: {firstName} {lastName}\nEmail: {email}\nPhone: {phone}";
+
+                    // 3. Generate QR code
+                    using (QRCodeGenerator qrCodeGenerator = new QRCodeGenerator())
+                    using (QRCodeData qrCodeData = qrCodeGenerator.CreateQrCode(qrCodeDataString, QRCodeGenerator.ECCLevel.Q))
+                    using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
+                    {
+                        byte[] qrCodeImage = qrCode.GetGraphic(20);
+                        qrCodeBase64 = Convert.ToBase64String(qrCodeImage);
+                    }
+
                     NpgsqlCommand insertCmd;
 
-                    insertQuery = @"INSERT INTO employees (emp_id, rid, first_name, last_name, email, phone, password, facial_path, qr_code_path)
-                                    SELECT pending_emp_id, rid, first_name, last_name, email, phone, user_password, facial_path, qr_code_path
+                    insertQuery = @"INSERT INTO employees (emp_id, rid, first_name, last_name, email, phone, user_password, facial_path, qr_code_path)
+                                    SELECT pending_emp_id, rid, first_name, last_name, email, phone, user_password, facial_path, @qr_code_path
                                     FROM pending_employees WHERE pending_emp_id = @pending_emp_id";
 
                     insertCmd = new NpgsqlCommand(insertQuery, conn, transaction);
                     insertCmd.Parameters.AddWithValue("@pending_emp_id", id);
+                    insertCmd.Parameters.AddWithValue("@qr_code_path", qrCodeBase64);
                     insertCmd.ExecuteNonQuery();
 
                     // Delete the user from pending_employees Table
