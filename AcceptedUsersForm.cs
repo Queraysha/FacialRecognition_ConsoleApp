@@ -46,15 +46,15 @@ namespace FacialRecognition
             {
                 var row = dgvEmployee.SelectedRows[0];
 
-                int id = Convert.ToInt32(row.Cells["emp_id"].Value);
-                string rid = row.Cells["rid"].Value?.ToString() ?? "";
-                string name = row.Cells["first_name"].Value?.ToString() ?? "";
-                string surname = row.Cells["last_name"].Value?.ToString() ?? "";
-                string email = row.Cells["email"].Value?.ToString() ?? "";
-                string password = row.Cells["user_password"].Value?.ToString() ?? "";
+                int    id          = Convert.ToInt32(row.Cells["emp_id"].Value);
+                string rid         = row.Cells["rid"].Value?.ToString() ?? "";
+                string name        = row.Cells["first_name"].Value?.ToString() ?? "";
+                string surname     = row.Cells["last_name"].Value?.ToString() ?? "";
+                string email       = row.Cells["email"].Value?.ToString() ?? "";
+                string password    = row.Cells["user_password"].Value?.ToString() ?? "";
                 string phoneNumber = row.Cells["phone"]?.Value?.ToString() ?? "";
-                string qrCode = row.Cells["qr_code_path"]?.Value?.ToString() ?? "";
-                string imagePath = row.Cells["facial_path"]?.Value?.ToString() ?? "";
+                string qrCode      = row.Cells["qr_code_path"]?.Value?.ToString() ?? "";
+                string imagePath   = row.Cells["facial_path"]?.Value?.ToString() ?? "";
 
                 var updateForm = new UpdateUserForm("employee", id, rid, name, surname, email, password, phoneNumber, qrCode, imagePath);
                 if (updateForm.ShowDialog() == DialogResult.OK)
@@ -66,13 +66,13 @@ namespace FacialRecognition
             {
                 var row = dgvVisitors.SelectedRows[0];
 
-                int id = Convert.ToInt32(row.Cells["visitor_id"].Value);
-                string rid = row.Cells["rid"].Value?.ToString() ?? "";
-                string name = row.Cells["first_name"].Value?.ToString() ?? "";
-                string surname = row.Cells["last_name"].Value?.ToString() ?? "";
-                string email = row.Cells["email"].Value?.ToString() ?? "";
+                int    id          = Convert.ToInt32(row.Cells["visitor_id"].Value);
+                string rid         = row.Cells["rid"].Value?.ToString() ?? "";
+                string name        = row.Cells["first_name"].Value?.ToString() ?? "";
+                string surname     = row.Cells["last_name"].Value?.ToString() ?? "";
+                string email       = row.Cells["email"].Value?.ToString() ?? "";
                 string phoneNumber = row.Cells["phone"]?.Value?.ToString() ?? "";
-                string qrCode = row.Cells["qr_code_path"]?.Value?.ToString() ?? "";
+                string qrCode      = row.Cells["qr_code_path"]?.Value?.ToString() ?? "";
 
                 var updateForm = new UpdateUserForm("visitor", id, rid, name, surname, email, "", phoneNumber, qrCode, "");
                 if (updateForm.ShowDialog() == DialogResult.OK)
@@ -94,13 +94,13 @@ namespace FacialRecognition
 
                 // Load employees
                 var employeeAdapter = new NpgsqlDataAdapter("SELECT * FROM employees", conn);
-                var employeeTable = new DataTable();
+                var employeeTable   = new DataTable();
                 employeeAdapter.Fill(employeeTable);
                 dgvEmployee.DataSource = employeeTable;
 
                 // Load visitors
                 var visitorAdapter = new NpgsqlDataAdapter("SELECT * FROM visitors", conn);
-                var visitorTable = new DataTable();
+                var visitorTable   = new DataTable();
                 visitorAdapter.Fill(visitorTable);
                 dgvVisitors.DataSource = visitorTable;
             }
@@ -113,20 +113,18 @@ namespace FacialRecognition
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
-            if (dgvEmployee.CurrentRow != null)
+            if (dgvEmployee.SelectedRows.Count > 0)
             {
-                int id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["emp_id"].Value);
+                int id = Convert.ToInt32(dgvEmployee.SelectedRows[0].Cells["emp_id"].Value);
                 RemoveUser(id, "employees");
             }
-            else if (dgvVisitors.CurrentRow != null)
+            else if (dgvVisitors.SelectedRows.Count > 0)
             {
-                int id = Convert.ToInt32(dgvVisitors.CurrentRow.Cells["visitor_id"].Value);
+                int id = Convert.ToInt32(dgvVisitors.SelectedRows[0].Cells["visitor_id"].Value);
                 RemoveUser(id, "visitors");
             }
-            else
-            {
-                MessageBox.Show("Please select a user to remove.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+
+
         }
 
         private void RemoveUser(int id, string tableName)
@@ -149,10 +147,6 @@ namespace FacialRecognition
             }
         }
 
-        private void AcceptedUsersForm_Load(object sender, EventArgs e)
-        {
-
-        }
 
         private void btnClose_Click(object sender, EventArgs e)
         {

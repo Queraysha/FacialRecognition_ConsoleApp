@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using ZXing;
 using Npgsql;
 using QRCoder;
+using System.Net.Mail;
 
 namespace FacialRecognition
 {
@@ -25,11 +26,11 @@ namespace FacialRecognition
 
 
         private string connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
-                                  $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
-                                  $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
-                                  $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
-                                  $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
-                                  $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
+                                          $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
+                                          $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
+                                          $"Password={Environment.GetEnvironmentVariable("DB_PASS")};" +
+                                          $"SSL Mode={Environment.GetEnvironmentVariable("DB_SSLMODE")};" +
+                                          $"Trust Server Certificate={Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERT")};";
 
 
 
@@ -57,8 +58,7 @@ namespace FacialRecognition
                 int id;
                 id = Convert.ToInt32(dgvEmployee.CurrentRow.Cells["pending_emp_id"].Value);
                 AcceptUser(id);
-            }
-            ;
+            };
         }
 
         private void btnBack_Click(object sender, EventArgs e)
@@ -93,10 +93,12 @@ namespace FacialRecognition
                     // Insert selected user into employees
                     string insertQuery;
                     string qrCodeBase64;
+                    string email_subject = "Approved Employee";
 
                     string selectQuery = @"SELECT rid, first_name, last_name, email, phone, registration_date FROM pending_employees WHERE pending_emp_id = @id";
                     string qrCodeDataString;
 
+                    // Decrypt values using Cryptography.Fernet
                     string rid = "", firstName = "", lastName = "", email = "", phone = "";
 
                     using (NpgsqlCommand selectCmd = new NpgsqlCommand(selectQuery, conn, transaction))
@@ -147,6 +149,39 @@ namespace FacialRecognition
                     NpgsqlCommand deleteCmd = new NpgsqlCommand(deleteQuery, conn, transaction);
                     deleteCmd.Parameters.AddWithValue("@pending_emp_id", id);
                     deleteCmd.ExecuteNonQuery();
+
+
+                    MailMessage mail = new MailMessage();
+                    SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
+
+                    mail.From = new MailAddress(Environment.GetEnvironmentVariable("EMAIL_SENDER"));
+                    mail.To.Add(email);
+                    mail.Subject = email_subject;
+                    mail.IsBodyHtml = true;
+
+                    smtp.Credentials = new System.Net.NetworkCredential(
+                        Environment.GetEnvironmentVariable("EMAIL_SENDER"),
+                        Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+                    );
+                    smtp.EnableSsl = true;
+
+                    // HTML body with tags and emojis
+                    string htmlBody = $@"
+                                        <html>
+                                          <body style='font-family: Arial, sans-serif; font-size: 14px;'>
+                                            <p>Dear {rid},<br><br>
+                                            Your employee registration has been approved. &#10003;<br>
+                                            You can now access the system using your credentials.<br>
+                                            Please wait 2 minutes &#9203; after receiving this email to sign in...<br>
+                                            Click to Sign in:<a href='https://facialrecognitionwebsite.onrender.com/'>Sign in</a><br><br>
+                                            Best regards,<br>
+                                            Atos Interns</p>
+                                          </body>
+                                        </html>";
+
+                    AlternateView avHtml = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
+                    mail.AlternateViews.Add(avHtml);
+                    smtp.Send(mail);
 
                     transaction.Commit(); // Commit transaction
                     MessageBox.Show("User Accepted and Moved Successfully!");

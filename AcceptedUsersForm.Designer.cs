@@ -161,7 +161,6 @@
             this.Controls.Add(this.panel1);
             this.Name = "AcceptedUsersForm";
             this.Text = "AcceptedUsers";
-            this.Load += new System.EventHandler(this.AcceptedUsersForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvEmployee)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvVisitors)).EndInit();
             this.panel1.ResumeLayout(false);

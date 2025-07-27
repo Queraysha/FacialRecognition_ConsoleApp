@@ -1,8 +1,13 @@
 ﻿using Npgsql;
+using QRCoder;
 using System;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Net.Mail;
 using System.Windows.Forms;
-using QRCoder;
+using static QRCoder.PayloadGenerator;
 
 
 
@@ -77,6 +82,8 @@ namespace FacialRecognition
                     // Insert selected user into visitors table
                     string insertQuery;
                     string qrCodeBase64;
+                    string email_subject = "Approved Visitor";
+                    Image qrCodeVisitorImage;
 
                     string selectQuery = @"SELECT rid, first_name, last_name, email, phone, registration_date FROM pending_visitors WHERE pending_visitor_id = @id";
                     string qrCodeDataString;
@@ -114,6 +121,14 @@ namespace FacialRecognition
                         byte[] qrCodeImage = qrCode.GetGraphic(20);
                         qrCodeBase64 = Convert.ToBase64String(qrCodeImage);
                     }
+                    
+
+                    byte[] imageBytes = Convert.FromBase64String(qrCodeBase64);
+                    using (MemoryStream ms = new MemoryStream(imageBytes))
+                    {
+                        qrCodeVisitorImage = Image.FromStream(ms);
+                    }
+
 
                     NpgsqlCommand insertCmd;
 
@@ -135,6 +150,50 @@ namespace FacialRecognition
                     deleteCmd.Parameters.AddWithValue("@pending_visitor_id", id);
                     deleteCmd.ExecuteNonQuery();
 
+                    MailMessage mail = new MailMessage();
+                    SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
+
+                    mail.From = new MailAddress(Environment.GetEnvironmentVariable("EMAIL_SENDER"));
+                    mail.To.Add(email);  // Recipient from database
+                    mail.Subject = email_subject;
+                    mail.IsBodyHtml = true;
+
+                    smtp.Credentials = new System.Net.NetworkCredential(
+                        Environment.GetEnvironmentVariable("EMAIL_SENDER"),
+                        Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+                    );
+                    smtp.EnableSsl = true;
+
+                    // Convert Image to memory stream for attachment
+                    MemoryStream imageStream = new MemoryStream();
+                    qrCodeVisitorImage.Save(imageStream, ImageFormat.Png);
+                    imageStream.Position = 0;
+
+                    // Create the alternate view with embedded image
+                    LinkedResource qrImage = new LinkedResource(imageStream, "image/png")
+                    {
+                        ContentId = "qrCodeImage",
+                        TransferEncoding = System.Net.Mime.TransferEncoding.Base64
+                    };
+
+                    string htmlBody = $@"
+                                        <html>
+                                             <body style='font-family: Arial, sans-serif; font-size: 14px;'>
+                                                <p>Dear {rid},</p>
+                                                <p>Your visitor registration has been approved &#10003;.</p>
+                                                <p>You can now access the premises using the QR code below: &#128247;</p>
+                                                <img src='cid:qrCodeImage' />
+                                                <p>Best regards,<br>Atos Interns</p>
+                                            </body>
+                                        </html>";
+
+                    AlternateView avHtml = AlternateView.CreateAlternateViewFromString(htmlBody, null, "text/html");
+                    avHtml.LinkedResources.Add(qrImage);
+                    mail.AlternateViews.Add(avHtml);
+
+                    smtp.Send(mail);
+
+
                     transaction.Commit(); // Commit transaction
                     MessageBox.Show("User Accepted and Moved Successfully!");
                     LoadVisitors(); // Refresh the grid
@@ -155,7 +214,7 @@ namespace FacialRecognition
                 string query;
                 NpgsqlCommand cmd;
 
-                query = "DELETE FROM pending_visitors WHERE pendind_visitor_id = @pending_visitor_id";
+                query = "DELETE FROM pending_visitors WHERE pending_visitor_id = @pending_visitor_id";
                 cmd = new NpgsqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@pending_visitor_id", id);
                 cmd.ExecuteNonQuery();
@@ -174,10 +233,7 @@ namespace FacialRecognition
 
         }
 
-        private void VisitorForm_Load(object sender, EventArgs e)
-        {
 
-        }
     }
 }
 

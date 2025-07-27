@@ -90,9 +90,5 @@ namespace FacialRecognition
             }
         }
 
-        private void AdminLoginForm_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
